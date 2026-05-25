@@ -1,29 +1,31 @@
 import nodemailer from "nodemailer";
+import env from 'dotenv'
+
+env.config()
 
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
   port: 587,
   secure: false, // Use 'true' for port 465, 'false' for all other ports
   auth: {
-    user: "a6e834001@smtp-brevo.com", // Your email address
-    pass: process.env.BREVO_PASS, // Your email password or App Password
+    user: process.env.BRAVO_USER, // Your email address
+    pass:process.env.BREVO_PASS, // Your email password or App Password
   },
 });
 
 // OTP method
 const sendOTP = async function (userEmail) {
   try {
-    const OTP = Math.floor(Math.random() * 10000);
-    console.log(OTP);
+    const OTP = (Math.floor(Math.random() * 10000)).toString();
 
     const info = await transporter.sendMail({
-      from: '"Neo Team" <neoteam@example.com>', // sender address
+      from: '"Neo Team" <neo701230@gmail.com>', // sender address
       to: `${userEmail}`,
       subject: "Neo OTP Varification", // subject line
-      text: `Your vafication code is ${OTP}`, // plain text body
-      html: "<b>Hey, Injoy Your NEO Journey</b>", // HTML body
+      html: `<b>Hey, Injoy Your NEO Journey</b>
+            <p>Your vafication code is ${OTP}</p>
+      `, 
     });
-
     return OTP;
   } catch (err) {
     console.log("when sending OTP :\n", err);

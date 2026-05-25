@@ -10,21 +10,33 @@ export const addToCart = async (req, res) => {
     const qty = Number(quantity) || 1;
 
     const user = await User.findById(userId);
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ✅ Correct comparison
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    // buyer = seller  ? checking
+    if (user.role === "seller") {
+      const isOwner = user.products.some((el) =>
+        el._id.equals(productId)
+      );
+
+      if (isOwner) {
+        return res.status(400).json({ message: "You own the product" });
+      }
+    }
+
+    // Check item already exists
     const existingItem = user.cart.find((item) =>
-      item.product.equals(productId),
+      item.product.equals(productId)
     );
 
     if (existingItem) {
-      // Increase quantity
       existingItem.quantity += qty;
     } else {
-      // Add new item
       user.cart.push({
         product: productId,
         quantity: qty,
@@ -33,13 +45,14 @@ export const addToCart = async (req, res) => {
 
     await user.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Product added to cart",
       cart: user.cart,
     });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Something went wrong",
     });
   }

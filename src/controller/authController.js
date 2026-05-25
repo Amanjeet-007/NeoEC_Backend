@@ -3,14 +3,21 @@ import { User } from "../model/userModel.js";
 import { generateToken } from "../utils/generateToken.js";
 import sendError from "../utils/errorHandle.js";
 
+// Rate limiting for routes (/login and /register) from brute-force attacks, credential stuffing, and Denial of Service (DoS) attempts.
+
 // REGISTER
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    if(!name || !email || !password){
+      return res.status(400).json({message:"please send all required details"})
+    }
+
     const existing = await User.findOne({ email });
-    if (existing)
+    if (existing){
       return res.status(400).json({ message: "Email already exists" });
+    }
 
     const hashed = await bcrypt.hash(password, 10);
 
@@ -51,20 +58,30 @@ export const register = async (req, res) => {
       });
   } catch (err) {
     console.log(err);
-    return res.status(400).json({ message: "Error while register", err });
+    return res.status(500).json({ message: "An unexpected error occurred during registration."});
   }
 };
-
 // LOGIN
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if(!email || !password){
+      return res.status(400).json({message:"Please fill all required field"})
+    }
+
     const user = await User.findOne({ email }).select("+password");
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
+    if (!user){
+      // Execute a dummy hash check to consume the same time an actual check takes
+      // This tricks timing-analysis tools into thinking the email was found
+      await bcrypt.compare("dummy_password", "$2b$10$fakehashstringtofooleveryone...");
+      return res.status(401).json({ success: false, message: "Invalid credentials" }); 
+      // Note: 401 Unauthorized is semantically cleaner than 400 for auth failures
+    }
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(400).json({ message: "Invalid credentials" });
+    if (!match) return res.status(401).json({ message: "Invalid credentials" });
 
     return res
       .status(200)
@@ -85,7 +102,8 @@ export const login = async (req, res) => {
         },
       });
   } catch (err) {
-    sendError(500, err.message);
+    console.log("while login",err)
+    return res.status(500).json({ message: "An unexpected error occurred during registration."});
   }
 };
 

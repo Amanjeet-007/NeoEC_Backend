@@ -1,6 +1,5 @@
 import { Order } from "../model/orderModel.js";
 
-
 // Place Order
 export const placeOrder = async (req, res) => {
   const { shippingAddress, paymentStatus, razorpayIds } = req.body;
@@ -14,8 +13,6 @@ export const placeOrder = async (req, res) => {
     product: item.product._id,
     quantity: item.quantity,
     priceAtPurchase: item.product.price,
-    color: item.color,
-    size: item.size
   }));
 
   const totalAmount = cart.items.reduce(

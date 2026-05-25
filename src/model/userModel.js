@@ -12,6 +12,14 @@ const product = new mongoose.Schema({
   },
 }); // for cart
 
+const OTP = new mongoose.Schema({
+  value:String,
+  exptime:{
+    type: Number,
+    default:Date.now
+  }
+})
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -81,9 +89,7 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    emailOTP:{
-      type:Number,
-    },
+    emailOTP:OTP,
     notify:[
       {
         type:String,
