@@ -32,7 +32,9 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/user/order",orderRoutes)
 // app.get("api/all/products", getProducts);
-
+app.get("/",(req,res)=>{
+    res.send("Hello world")
+})
 
 // app.use('/api/admin',adminRoute)
 
