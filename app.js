@@ -13,7 +13,8 @@ import orderRoutes from './src/routes/orderRoute.js'
 const app = express()
 
 app.use(cors({
-    origin: "http://localhost:5173",
+    // origin: "http://localhost:5173",
+    origin: "https://neoecommerce.vercel.app/",
     credentials: true,               // 👈 allow cookies
 }))
 
