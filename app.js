@@ -14,7 +14,7 @@ const app = express()
 
 app.use(
   cors({
-    origin: "https://neoecommerce.vercel.app",
+    origin: ["https://neoecommerce.vercel.app","http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })

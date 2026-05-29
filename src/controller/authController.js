@@ -10,12 +10,12 @@ export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    if(!name || !email || !password){
-      return res.status(400).json({message:"please send all required details"})
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "please send all required details" })
     }
 
     const existing = await User.findOne({ email });
-    if (existing){
+    if (existing) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
@@ -42,7 +42,7 @@ export const register = async (req, res) => {
       .status(201)
       .cookie("token", generateToken(user._id), {
         httpOnly: true,
-        secure: false, // true ONLY in production (https)
+        secure: true, // true ONLY in production (https)
         sameSite: "lax", // 👈 works for localhost
       })
       .json({
@@ -58,7 +58,7 @@ export const register = async (req, res) => {
       });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ message: "An unexpected error occurred during registration."});
+    return res.status(500).json({ message: "An unexpected error occurred during registration." });
   }
 };
 // LOGIN
@@ -66,17 +66,17 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if(!email || !password){
-      return res.status(400).json({message:"Please fill all required field"})
+    if (!email || !password) {
+      return res.status(400).json({ message: "Please fill all required field" })
     }
 
     const user = await User.findOne({ email }).select("+password");
 
-    if (!user){
+    if (!user) {
       // Execute a dummy hash check to consume the same time an actual check takes
       // This tricks timing-analysis tools into thinking the email was found
       await bcrypt.compare("dummy_password", "$2b$10$fakehashstringtofooleveryone...");
-      return res.status(401).json({ success: false, message: "Invalid credentials" }); 
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
       // Note: 401 Unauthorized is semantically cleaner than 400 for auth failures
     }
 
@@ -87,8 +87,8 @@ export const login = async (req, res) => {
       .status(200)
       .cookie("token", generateToken(user._id), {
         httpOnly: true,
-        secure: false, // true ONLY in production (https)
-        sameSite: "lax", // 👈 works for localhost
+        secure: true, // true ONLY in production (https)
+        sameSite: "none", // 👈 works for localhost
       })
       .json({
         success: true,
@@ -102,8 +102,8 @@ export const login = async (req, res) => {
         },
       });
   } catch (err) {
-    console.log("while login",err)
-    return res.status(500).json({ message: "An unexpected error occurred during registration."});
+    console.log("while login", err)
+    return res.status(500).json({ message: "An unexpected error occurred during registration." });
   }
 };
 
