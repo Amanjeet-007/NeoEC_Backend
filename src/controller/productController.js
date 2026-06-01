@@ -63,6 +63,32 @@ export async function createProduct(req, res) {
       return res.status(400).json({ message: "Required fields missing" });
     }
 
+    if (user.email == "seller@test.com") {
+      if (user.products.length >= 1) {
+        return res.status(300).json({ message: "test account only can create one product for test" })
+      }
+      const newProduct = new Product({
+        name,
+        description,
+        price,
+        brand,
+        images,
+        stock,
+        category,
+        isFeatured,
+        seller: user._id,
+      });
+      await newProduct.save();
+      user.products.push(newProduct._id);
+      await user.save();
+
+      return res.status(201).json({
+        message: "Product created successfully",
+        product: newProduct,
+      });
+
+    }
+
     const newProduct = new Product({
       name,
       description,
@@ -166,13 +192,13 @@ export async function searchProduct(req, res) {
 
 // get Product detail
 export async function productDetail(req, res) {
-  try{
-  const { id }  = req.params
-  const details = await Product.findById(id);
+  try {
+    const { id } = req.params
+    const details = await Product.findById(id);
 
-  return res.status(200).json({message:"Done fetching",info:details})
-  }catch(err){
+    return res.status(200).json({ message: "Done fetching", info: details })
+  } catch (err) {
     console.log(err)
-    return res.status(200).json({message:"getting error",info:details})
+    return res.status(200).json({ message: "getting error", info: details })
   }
 }

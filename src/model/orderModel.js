@@ -50,7 +50,7 @@ const orderSchema = new mongoose.Schema({
 
   razorpayOrderId: String,
   razorpayPaymentId: String,
-  razorpaySignature: String
+  razorpaySignature: String     
 }, { timestamps: true });
 
 export const Order = mongoose.model("Order", orderSchema);
