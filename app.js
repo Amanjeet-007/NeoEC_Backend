@@ -12,6 +12,8 @@ import orderRoutes from './src/routes/orderRoute.js'
 
 const app = express()
 
+app.set("trust proxy", 1);
+
 app.use(
   cors({
     origin: ["https://neoecommerce.vercel.app","http://localhost:5173"],
