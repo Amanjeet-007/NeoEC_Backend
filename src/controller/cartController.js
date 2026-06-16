@@ -15,8 +15,12 @@ export const addToCart = async (req, res) => {
     }
 
     const product = await Product.findById(productId);
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
+    }
+    if (product.stock < 1 || product.stock < quantity) {
+      return res.status(404).json({ message: "stock not available" })
     }
     // buyer = seller  ? checking
     if (user.role === "seller") {
@@ -43,7 +47,12 @@ export const addToCart = async (req, res) => {
       });
     }
 
+    //remove the stock 1 or by quantity
+    product.stock -= quantity
+
+    await product.save();
     await user.save();
+
 
     return res.status(200).json({
       message: "Product added to cart",
