@@ -112,6 +112,7 @@ export const getCart = async (req, res) => {
 export const removeFromCart = async (req, res) => {
   try {
     const { id } = req.params; // This is the Product ID
+    const { quantity } = req.body
     const userId = req.user.id;
 
     /*
@@ -120,6 +121,10 @@ export const removeFromCart = async (req, res) => {
     user.cart.pull({ product: id }); 
     await user.save();
      */
+    const product = await Product.findById(id)
+
+    product.stock += quantity
+  
 
     // Use findByIdAndUpdate with $pull to remove the item in one database call
     // This is much faster than fetching the user, looping, and saving.
@@ -136,6 +141,9 @@ export const removeFromCart = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
     }
+    
+    await product.save()
+    await user.save()
 
     res.json({
       success: true,
