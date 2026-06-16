@@ -1,6 +1,6 @@
 import express from "express";
 import upload from "../utils/storage.js";
-import {myProduct, createProduct ,editProduct ,deleteProduct ,getAllProducts, searchProduct, productDetail } from "../controller/productController.js";
+import {myProduct, createProduct ,editProduct ,deleteProduct ,getAllProducts, searchProduct, productDetail , searchresult } from "../controller/productController.js";
 import { varify ,isSeller } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -15,7 +15,8 @@ router.delete("/delete/:id", varify , isSeller, deleteProduct);
 router.get("/", getAllProducts);
 
 // for both
-router.get('/search',searchProduct) //GET /api/products/search?q=laptop
+router.get('/search',searchProduct) //GET /api/products/search?q=laptop (serach recommendation)
+router.get('/result/:productname',searchresult)
 router.get('/details/:id', productDetail);
 
 

@@ -88,7 +88,8 @@ export const login = async (req, res) => {
       .cookie("token", generateToken(user._id), {
         httpOnly: true,
         secure: true, // true ONLY in production (https)
-        sameSite: "none", // 👈 works for localhost
+        sameSite: "lax", // 👈 works for localhost
+        maxAge: 1000 * 60 * 60 * 24 // 1 day
       })
       .json({
         success: true,

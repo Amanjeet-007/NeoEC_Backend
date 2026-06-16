@@ -202,3 +202,28 @@ export async function productDetail(req, res) {
     return res.status(200).json({ message: "getting error", info: details })
   }
 }
+
+//search result
+export async function searchresult(req, res) {
+  try {
+    const { productname } = req.params
+
+    
+    function toTitleCase(str) {
+      return str
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
+    let name = toTitleCase(productname)
+    const products = await Product.find({ name })
+    console.log(products)
+    return res.status(200).json({ products })
+
+  } catch (err) {
+
+    console.log(err)
+    return res.status(400).json({ message: "Error seached result" })
+  }
+}
