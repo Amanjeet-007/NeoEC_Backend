@@ -111,45 +111,42 @@ export const getCart = async (req, res) => {
 // Remove Item
 export const removeFromCart = async (req, res) => {
   try {
-    const { id } = req.params; // This is the Product ID
-    const { quantity } = req.body
+    const { id } = req.params; // Product ID
     const userId = req.user.id;
 
-    /*
-    const user = await User.findById(userId);
-    // Mongoose arrays have a special .pull() method
-    user.cart.pull({ product: id }); 
-    await user.save();
-     */
-    const product = await Product.findById(id)
-
-    product.stock += Number(quantity)
-  
-
-    // Use findByIdAndUpdate with $pull to remove the item in one database call
-    // This is much faster than fetching the user, looping, and saving.
-    const user = await User.findByIdAndUpdate(
-      userId,
-      {
-        $pull: { cart: { product: id } },
-      },
-      { new: true }, // Returns the updated document
-    );
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+    // 1. Fetch the user first to find the item and its quantity
+    const userDoc = await User.findById(userId);
+    if (!userDoc) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
+
+    // 2. Find the specific item in the cart to see how many were added
+    const cartItem = userDoc.cart.find(item => item.product.toString() === id);
     
-    await product.save()
-    await user.save()
+    if (!cartItem) {
+      return res.status(404).json({ success: false, message: "Product not found in cart" });
+    }
+
+    // 3. Extract the quantity safely (fallback to 1 if anything goes wrong)
+    const quantityToRestore = Number(cartItem.quantity) || 1;
+
+    // 4. Fetch the product and update its stock safely
+    const product = await Product.findById(id);
+    if (product) {
+      product.stock = (Number(product.stock) || 0) + quantityToRestore;
+      await product.save();
+    }
+
+    // 5. Remove the item from the array using Mongoose's built-in .pull()
+    userDoc.cart.pull({ product: id });
+    await userDoc.save();
 
     res.json({
       success: true,
       message: "Product removed from cart",
-      cartCount: user.cart.length,
+      cartCount: userDoc.cart.length,
     });
+
   } catch (error) {
     console.error("Error removing from cart:", error);
     res.status(500).json({ success: false, message: "Server error" });
