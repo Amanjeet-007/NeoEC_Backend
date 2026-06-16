@@ -123,7 +123,7 @@ export const removeFromCart = async (req, res) => {
      */
     const product = await Product.findById(id)
 
-    product.stock += quantity
+    product.stock += Number(quantity)
   
 
     // Use findByIdAndUpdate with $pull to remove the item in one database call
