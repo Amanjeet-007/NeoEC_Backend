@@ -4,6 +4,8 @@ import { User } from "../model/userModel.js";
 import sendError from "../utils/errorHandle.js";
 import { uploadFile, deleteFile } from "../utils/imagekit.js";
 
+//GET /api/products/search?q=iph search suggestion
+
 // sellers
 export async function myProduct(req, res) {
   try {
@@ -171,24 +173,36 @@ export async function getAllProducts(req, res) {
 // get product by name
 export async function searchProduct(req, res) {
   try {
-    const query = req.query.q;
+    const query = req.query.q?.trim();
 
     if (!query) {
-      return res.json([]);
+      return res.status(200).json([]);
     }
-    const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 
-    const products = await Product.find({
+    const regex = new RegExp(
+      query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      "i"
+    );
+
+    const suggestions = await Product.find({
       name: regex,
-    })
-      .limit(5)
-      .select("name");
+    }).limit(5)
+      // .lean();
 
-    res.json(products);
+    return res.status(200).json(
+      {suggestions}
+    );
+
   } catch (error) {
-    res.status(500).json({ message: "Search failed" });
+    console.log(error);
+
+    return res.status(500).json({
+      message: "Search suggestion failed",
+    });
+
   }
 }
+
 
 // get Product detail
 export async function productDetail(req, res) {
@@ -206,24 +220,118 @@ export async function productDetail(req, res) {
 //search result
 export async function searchresult(req, res) {
   try {
-    const { productname } = req.params
+    const { productname } = req.params;
 
-    
-    function toTitleCase(str) {
-      return str
-        .toLowerCase()
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 12;
+
+    const skip = (page - 1) * limit;
+
+    const sortOption = req.query.sort;
+
+    const regex = new RegExp(
+      productname.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      "i"
+    );
+
+    const query = {
+      name: regex,
+    };
+
+    let sort = {};
+
+    switch (sortOption) {
+      case "price_asc":
+        sort.price = 1;
+        break;
+
+      case "price_desc":
+        sort.price = -1;
+        break;
+
+      case "best_selling":
+        sort.soldCount = -1;
+        break;
+
+      default:
+        sort.createdAt = -1;
     }
-    let name = toTitleCase(productname)
-    const products = await Product.find({ name })
-    console.log(products)
-    return res.status(200).json({ products })
 
-  } catch (err) {
+    const [products, total] = await Promise.all([
+      Product.find(query)
+        .select(
+          "name price rating stock isFeatured images"
+        )
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
 
-    console.log(err)
-    return res.status(400).json({ message: "Error seached result" })
+      Product.countDocuments(query),
+    ]);
+
+    if (req.user?.id) {
+      await User.findByIdAndUpdate(
+        req.user.id,
+        {
+          $pull: {
+            recentSearches: {
+              keyword: productname,
+            },
+          },
+        }
+      );
+
+      await User.findByIdAndUpdate(
+        req.user.id,
+        {
+          $push: {
+            recentSearches: {
+              $each: [
+                {
+                  keyword: productname,
+                },
+              ],
+              $position: 0,
+              $slice: 10,
+            },
+          },
+        }
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      products,
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Search result failed",
+    });
+
   }
 }
+
+export async function getRecentSearches(req, res) {
+  try {
+    const user = await User.findById(req.user.id)
+      .select("recentSearches")
+      .lean();
+
+    return res.status(200).json({
+      recentSearches: user?.recentSearches || [],
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      message: "Failed to get searches",
+    });
+  }
+}
+

@@ -94,7 +94,16 @@ const userSchema = new mongoose.Schema(
       {
         type:String,
       }
-    ]
+    ],
+    recentSearches: [
+    {
+        keyword: String,
+        searchedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }
+]
   },
   { timestamps: true },
 );

@@ -56,13 +56,24 @@ const productSchema = new mongoose.Schema(
         type: String,
       },
     ],
-    reviews: { type: [mongoose.Schema.Types.ObjectId], ref: "Reviews" },
+    searchCount: {
+      type: Number,
+      default: 0
+    },
+    soldCount: {
+      type: Number,
+      default: 0
+    },
+    // reviews: { type: [mongoose.Schema.Types.ObjectId], ref: "Reviews" },
   },
   { timestamps: true },
 );
+
 productSchema.index({
   name: "text",
   description: "text",
+  brand: "text",
+  category: "text"
 });
 
 export const Product = mongoose.model("Product", productSchema);

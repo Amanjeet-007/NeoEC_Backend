@@ -1,6 +1,6 @@
 import express from "express";
 import upload from "../utils/storage.js";
-import {myProduct, createProduct ,editProduct ,deleteProduct ,getAllProducts, searchProduct, productDetail , searchresult } from "../controller/productController.js";
+import {myProduct, createProduct ,editProduct ,deleteProduct ,getAllProducts, searchProduct, productDetail , searchresult , getRecentSearches } from "../controller/productController.js";
 import { varify ,isSeller } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -18,6 +18,7 @@ router.get("/", getAllProducts);
 router.get('/search',searchProduct) //GET /api/products/search?q=laptop (serach recommendation)
 router.get('/result/:productname',searchresult)
 router.get('/details/:id', productDetail);
+router.get('/recentsearch',varify,getRecentSearches)
 
 
 export default router;
