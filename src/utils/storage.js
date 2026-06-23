@@ -6,7 +6,7 @@ const maxSize = 1 * 1000 * 1000; // 1MB
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png/;
+  const allowedTypes = /jpeg|jpg|png|webp/;
   const isMimeValid = allowedTypes.test(file.mimetype);
   const isExtValid = allowedTypes.test(
     path.extname(file.originalname).toLowerCase()
@@ -15,7 +15,7 @@ const fileFilter = (req, file, cb) => {
   if (isMimeValid && isExtValid) {
     cb(null, true);
   } else {
-    cb(new Error("Only JPG, JPEG, PNG files are allowed"));
+    cb(new Error("Only JPG, JPEG, PNG, Webp files are allowed"));
   }
 };
 
