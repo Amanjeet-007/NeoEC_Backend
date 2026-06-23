@@ -1,7 +1,7 @@
 import multer from "multer";
 import path from "path";
 
-const maxSize = 1 * 1000 * 1000; // 1MB
+const maxSize = 3 * 1000 * 1000; // 3MB
 
 const storage = multer.memoryStorage();
 
